@@ -4,6 +4,7 @@ const webpack = require('webpack')
 module.exports = {
   entry: './app.ts',
   output: { path: path.__dirname, filename: 'bundle.js' },
+  devtool : 'source-map',
   module: {
     loaders: [
       {

@@ -12,6 +12,7 @@ declare module "codemirror" {
     on(eventName: string, callback: () => void): void;
     value(): string;
     doc: Document;
+    focus(): void;
   }
 
   function fromTextArea(element: HTMLTextAreaElement, options: Options): Editor
