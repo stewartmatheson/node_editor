@@ -1,32 +1,33 @@
 import codemirror = require("codemirror");
-import esprima = require("esprima");
-import escope = require("escope");
 import { NodeScope } from "./NodeScope.ts";
+import { NodeLayer } from "./NodeLayer.ts";
 
 // This class not only wrangles the DOM it also performs the heavy lifting
 // of the scope analysis. This should really be split in to two classes
+
+export interface Vector {
+  x: Number;
+  y: Number;
+}
+
 export class Node {
 
   private editor: codemirror.Editor;
   private container: HTMLDivElement;
-  private state: Object;
+  private position: Vector;
+  private isError: boolean;
 
-  // TODO : This is too big. I Want to spint this out in to smaller methods
-  constructor () {
-
-    const nodeContainer: HTMLDivElement =
-      <HTMLDivElement>document.createElement("div");
-    nodeContainer.className = "node";
-
+  appendTo (nodeLayer: NodeLayer) {
     const textArea: HTMLTextAreaElement =
       <HTMLTextAreaElement>document.createElement("textArea");
+    this.container = <HTMLDivElement>document.createElement("div");
+    this.container.appendChild(textArea);
 
-    nodeContainer.appendChild(this.createNodeHeader());
-    nodeContainer.appendChild(textArea);
-
-    const appication: HTMLDivElement =
-      <HTMLDivElement>document.getElementById("app");
-    appication.appendChild(nodeContainer);
+    // I would prefer nodes to not know what node layer they have
+    // been appended to however it looks like codemirror wants
+    // to be initialized after it's parents have been appended
+    // to the DOM.
+    nodeLayer.getElement().appendChild(this.container);
 
     // I'm sure there is a more direct way of doing this.
     this.editor = codemirror.fromTextArea(textArea, { lineNumbers : true });
@@ -44,23 +45,17 @@ export class Node {
     return titleContainer;
   }
 
+  // This should come out in to it's own class one day
   private onEditorChange () {
     try {
-      const ns: NodeScope = new NodeScope(this.editor.doc.getValue())
+      const ns: NodeScope = new NodeScope(this.editor.doc.getValue());
       ns.getPromiseLocations();
     } catch (e) {
-      this.update({ error : true });
+      console.log(e);
+      this.isError = true;
       return;
     }
-    this.update({ error : true });
+    this.isError = false;
   }
 
-  // TODO : Think about the following
-  // Not sure if I want to manage state in this way. Even if I did
-  // it's unlinkey this class (which to this point is mainly presentational)
-  // would be the right place to do it. I'm going to do it here for now
-  // because I could not be bothered to figure out the correct abstraction
-  private update(state: Object) {
-    this.state = state;
-  }
 }

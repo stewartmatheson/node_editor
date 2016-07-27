@@ -9,7 +9,6 @@ export class NodeScope {
 
   constructor (source: string) {
     const ast: ESTree.Program = esprima.parse(source);
-    console.log(ast);
     this.scopeManager = escope.analyze(ast);
   }
 
